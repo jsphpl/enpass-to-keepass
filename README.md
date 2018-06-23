@@ -1,6 +1,9 @@
 # enpass-to-keepass
 Convert an Enpass csv export so it can be imported to a KeePass database using KeePassXC
 
+## Background
+Read this blog article for some background on this tool: [https://jsph.pl/migrating-from-enpass-to-keepass/](https://jsph.pl/migrating-from-enpass-to-keepass/)
+
 ## Usage
 ```
 $ ./enpass-to-keepass.py --help
