@@ -13,6 +13,16 @@ import csv
 
 ALLOWED_FIELDS = ['url', 'username', 'password']
 HEADERS = ['title', 'url', 'username', 'password', 'notes']
+MAP_FIELDNAMES = {
+    'login': 'username',
+    'benutzername': 'username',
+    'login kennwort': 'password',
+    'kennwort': 'password',
+    'email': 'username',
+    'e-mail': 'username',
+}
+
+extra_keys = set([])
 
 def main(args):
     results = []
@@ -29,6 +39,9 @@ def main(args):
 
     print('%d rows processed' % len(results))
     print('Writing to %s' % args.output_file.name)
+    if (len(extra_keys) > 0):
+        print('Found extra keys: ' + ', '.join(extra_keys))
+
     writer = csv.DictWriter(args.output_file, HEADERS)
     writer.writeheader()
     writer.writerows(results)
@@ -44,6 +57,7 @@ def processRow(row):
     for (key, value) in makePairs(row):
         if key in result or key not in ALLOWED_FIELDS:
             result['notes'] += "%s: %s\n" % (key, value)
+            extra_keys.add(key)
         else:
             result[key] = value
 
@@ -51,8 +65,15 @@ def processRow(row):
 
 
 def makePairs(row):
-    return [(row[i], row[i+1]) for i in range(0, len(row), 2)]
+    return [(sanitizeKey(row[i]), row[i+1]) for i in range(0, len(row), 2)]
 
+def sanitizeKey(key):
+    key = key.strip().lower()
+
+    if key in MAP_FIELDNAMES:
+        return MAP_FIELDNAMES[key]
+
+    return key
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
