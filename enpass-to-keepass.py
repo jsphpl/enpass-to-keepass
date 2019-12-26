@@ -59,7 +59,7 @@ def processItem(item, folders):
 
     for field in item.get('fields', []):
         if field['label'] in result or field['label'].lower() not in ALLOWED_FIELDS:
-            if field['label'].lower() == 'email':
+            if field['label'].lower() == 'e-mail':
                 email = field['value']
                 continue
 
@@ -74,7 +74,7 @@ def processItem(item, folders):
     if not username and email:
         result['username'] = email
     else:
-        result['notes'] += "Email\n" + email
+        result['notes'] += "E-mail\n" + email
 
     return result
 
