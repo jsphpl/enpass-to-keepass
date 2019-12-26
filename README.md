@@ -1,6 +1,9 @@
 # enpass-to-keepass
 Convert an Enpass csv export so it can be imported to a KeePass database using KeePassXC
 
+## Updates
+This now imports from a JSON export from enpass, and includes folders from enpass as groups.  Since enpass now uses folders as "labels" and can have multiple, this chooses the first item in the list as the group
+
 ## Background
 Read this blog article for some background on this tool: [https://jsph.pl/migrating-from-enpass-to-keepass/](https://jsph.pl/migrating-from-enpass-to-keepass/)
 
@@ -17,7 +20,7 @@ License: Public Domain
 Author: Joseph Paul <joseph@sehrgute.software>
 
 positional arguments:
-  input_file   Path to Enpass csv export file
+  input_file   Path to Enpass json export file
   output_file  Path to output file (csv)
 
 optional arguments:
