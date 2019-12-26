@@ -6,32 +6,28 @@ Documentation & Issues: https://github.com/jsphpl/enpass-to-keepass
 
 License: Public Domain
 Author: Joseph Paul <joseph@sehrgute.software>
+
+Updated by: deltreey 2019-12-26
 """
 
 import argparse
 import csv
+import json
 
 ALLOWED_FIELDS = ['url', 'username', 'password']
-HEADERS = ['title', 'url', 'username', 'password', 'notes']
-MAP_FIELDNAMES = {
-    'login': 'username',
-    'benutzername': 'username',
-    'login kennwort': 'password',
-    'kennwort': 'password',
-    'email': 'username',
-    'e-mail': 'username',
-}
+HEADERS = ['title', 'url', 'username', 'password', 'group', 'notes']
 
 extra_keys = set([])
 
 def main(args):
     results = []
-    reader = csv.reader(args.input_file)
+    with open('export.json') as json_file:
+        data = json.load(json_file)
+        folders = data['folders']
+        items = data['items']
 
-    reader.__next__() # skip titles row
-
-    for row in reader:
-        results.append(processRow(row))
+        for item in items:
+            results.append(processItem(item, folders))
 
     if (len(results) == 0):
         print('No rows to write (empty input file?)')
@@ -47,33 +43,29 @@ def main(args):
     writer.writerows(results)
 
 
-def processRow(row):
-    notes = row.pop()
+def processItem(item, folders):
+    print('Reading item: ' + item['title'])
     result = {
-        'title': row.pop(0),
-        'notes': notes + '\n\n' if len(notes) else ''
+        'title': item['title'],
+        'notes': item['subtitle'] + '\n\n\n'
     }
 
-    for (key, value) in makePairs(row):
-        if key in result or key not in ALLOWED_FIELDS:
-            result['notes'] += "%s: %s\n" % (key, value)
-            extra_keys.add(key)
+    if item.get('folders'):
+        for folder in folders:
+            if folder['uuid'] == item['folders'][0]:
+                result['group'] = folder['title']
+                break
+
+    for field in item.get('fields', []):
+        if field['label'] in result or field['label'].lower() not in ALLOWED_FIELDS:
+            result['notes'] += "%s\n%s\n\n" % (field['label'], field['value'])
+            extra_keys.add(field['label'])
         else:
-            result[key] = value
+            result[field['label'].lower()] = field['value']
+
+    result['notes'] += "NOTES\n\n" + item['note']
 
     return result
-
-
-def makePairs(row):
-    return [(sanitizeKey(row[i]), row[i+1]) for i in range(0, len(row), 2)]
-
-def sanitizeKey(key):
-    key = key.strip().lower()
-
-    if key in MAP_FIELDNAMES:
-        return MAP_FIELDNAMES[key]
-
-    return key
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
