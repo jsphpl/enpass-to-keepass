@@ -6,16 +6,14 @@ Documentation & Issues: https://github.com/jsphpl/enpass-to-keepass
 
 License: Public Domain
 Author: Joseph Paul <joseph@sehrgute.software>
-
-Updated by: deltreey 2019-12-26
 """
 
 import argparse
 import csv
 import json
 
-ALLOWED_FIELDS = ['url', 'username', 'password']
-HEADERS = ['title', 'url', 'username', 'password', 'group', 'notes']
+ALLOWED_FIELDS = ['website', 'username', 'password']
+HEADERS = ['title', 'website', 'username', 'password', 'group', 'notes']
 
 extra_keys = set([])
 
@@ -56,14 +54,27 @@ def processItem(item, folders):
                 result['group'] = folder['title']
                 break
 
+    email = ''
+    username = ''
+
     for field in item.get('fields', []):
         if field['label'] in result or field['label'].lower() not in ALLOWED_FIELDS:
+            if field['label'].lower() == 'email':
+                email = field['value']
+                continue
+
             result['notes'] += "%s\n%s\n\n" % (field['label'], field['value'])
             extra_keys.add(field['label'])
         else:
             result[field['label'].lower()] = field['value']
+            if field['label'].lower() == 'username':
+                username = field['value']
 
     result['notes'] += "NOTES\n\n" + item['note']
+    if not username and email:
+        result['username'] = email
+    else:
+        result['notes'] += "Email\n" + email
 
     return result
 
