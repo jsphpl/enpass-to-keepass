@@ -12,14 +12,14 @@ import argparse
 import csv
 import json
 
-DIRECTLY_MAPPED_FIELDS = ['url', "username", 'password']
-CSV_HEADERS = ["title", 'url', "username", 'password', "group", "notes"]
+DIRECTLY_MAPPED_FIELDS = ["url", "username", "password"]
+CSV_HEADERS = ["title", "url", "username", "password", "group", "notes"]
 FIELD_ALIASES = {
-    'website': 'url',
-    'e-mail': 'email',
-    'login': 'username',
-    'benutzername': 'username',
-    'kennwort': 'password',
+    "website": "url",
+    "e-mail": "email",
+    "login": "username",
+    "benutzername": "username",
+    "kennwort": "password",
 }
 
 extra_keys = set([])
@@ -50,22 +50,24 @@ def process_item(item, folders):
             if field_alias == "username":
                 username = field["value"]
         else:
-            if field_alias == 'email':
+            if field_alias == "email":
                 email = field["value"]
                 continue
 
-            if len(str(field['value'])) > 0:
+            if len(str(field["value"])) > 0:
                 extra_fields[field["label"]] = field["value"]
 
             extra_keys.add(field["label"])
 
     if email:
         if username:
-            extra_fields['E-mail'] = email
+            extra_fields["E-mail"] = email
         else:
             result["username"] = email
 
-    result['notes'] = '\n'.join([f'{key}: {value}' for key, value in extra_fields.items()])
+    result["notes"] = "\n".join(
+        [f"{key}: {value}" for key, value in extra_fields.items()]
+    )
 
     return result
 
@@ -97,12 +99,17 @@ def convert_enpass_to_keypass(input_file, output_file):
     writer.writerows(results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('input_file', type=argparse.FileType('r'),
-                        help='Path to Enpass JSON export file')
-    parser.add_argument('output_file', type=argparse.FileType('w'),
-                        help='Path to output file (CSV)')
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        "input_file",
+        type=argparse.FileType("r"),
+        help="Path to Enpass JSON export file",
+    )
+    parser.add_argument(
+        "output_file", type=argparse.FileType("w"), help="Path to output file (CSV)"
+    )
     args = parser.parse_args()
     convert_enpass_to_keypass(args.input_file, args.output_file)

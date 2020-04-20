@@ -20,8 +20,8 @@ License: Public Domain
 Author: Joseph Paul <joseph@sehrgute.software>
 
 positional arguments:
-  input_file   Path to Enpass json export file
-  output_file  Path to output file (csv)
+  input_file   Path to Enpass JSON export file
+  output_file  Path to output file (CSV)
 
 optional arguments:
   -h, --help   show this help message and exit
