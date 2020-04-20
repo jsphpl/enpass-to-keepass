@@ -12,8 +12,15 @@ import argparse
 import csv
 import json
 
-ALLOWED_FIELDS = ['website', "username", 'password']
-HEADERS = ["title", 'website', "username", 'password', "group", "notes"]
+DIRECTLY_MAPPED_FIELDS = ['url', "username", 'password']
+CSV_HEADERS = ["title", 'url', "username", 'password', "group", "notes"]
+FIELD_ALIASES = {
+    'website': 'url',
+    'e-mail': 'email',
+    'login': 'username',
+    'benutzername': 'username',
+    'kennwort': 'password',
+}
 
 extra_keys = set([])
 
@@ -22,7 +29,6 @@ def process_item(item, folders):
     print(f"Reading item: {item['title']}")
     result = {
         "title": item["title"],
-        "notes": item['subtitle'] + '\n\n\n'
     }
 
     if folders and item.get("folders"):
@@ -31,27 +37,35 @@ def process_item(item, folders):
                 result["group"] = folder["title"]
                 break
 
-    email = ""
-    username = ""
+    email = None
+    username = None
+    extra_fields = {}
 
     for field in item.get("fields", []):
-        if field.get("label", "").lower() not in ALLOWED_FIELDS:
-            if field["label"].lower() == 'e-mail':
+        field_name = field.get("label", "").lower()
+        field_alias = FIELD_ALIASES.get(field_name, field_name)
+
+        if field_alias in DIRECTLY_MAPPED_FIELDS:
+            result[field_alias] = field["value"]
+            if field_alias == "username":
+                username = field["value"]
+        else:
+            if field_alias == 'email':
                 email = field["value"]
                 continue
 
-            result["notes"] += "%s\n%s\n\n" % (field["label"], field["value"])
-            extra_keys.add(field["label"])
-        else:
-            result[field["label"].lower()] = field["value"]
-            if field["label"].lower() == "username":
-                username = field["value"]
+            if len(str(field['value'])) > 0:
+                extra_fields[field["label"]] = field["value"]
 
-    result["notes"] += "NOTES\n\n" + item["note"]
-    if not username and email:
-        result["username"] = email
-    else:
-        result["notes"] += "E-mail\n" + email
+            extra_keys.add(field["label"])
+
+    if email:
+        if username:
+            extra_fields['E-mail'] = email
+        else:
+            result["username"] = email
+
+    result['notes'] = '\n'.join([f'{key}: {value}' for key, value in extra_fields.items()])
 
     return result
 
@@ -78,13 +92,14 @@ def convert_enpass_to_keypass(input_file, output_file):
     if extra_keys:
         print(f"Found extra keys: {', '.join(extra_keys)}")
 
-    writer = csv.DictWriter(output_file, HEADERS)
+    writer = csv.DictWriter(output_file, CSV_HEADERS)
     writer.writeheader()
     writer.writerows(results)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('input_file', type=argparse.FileType('r'),
                         help='Path to Enpass JSON export file')
     parser.add_argument('output_file', type=argparse.FileType('w'),
