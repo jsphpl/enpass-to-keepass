@@ -20,6 +20,7 @@ FIELD_ALIASES = {
     "login": "username",
     "benutzername": "username",
     "kennwort": "password",
+    "one-time code": "totp",
 }
 
 extra_keys = set([])
