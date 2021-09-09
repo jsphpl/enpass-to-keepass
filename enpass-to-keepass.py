@@ -12,14 +12,15 @@ import argparse
 import csv
 import json
 
-DIRECTLY_MAPPED_FIELDS = ["url", "username", "password"]
-CSV_HEADERS = ["title", "url", "username", "password", "group", "updated_at", "notes"]
+DIRECTLY_MAPPED_FIELDS = ["url", "username", "password", "totp"]
+CSV_HEADERS = ["title", "url", "username", "password", "group", "updated_at", "notes", "totp"]
 FIELD_ALIASES = {
     "website": "url",
     "e-mail": "email",
     "login": "username",
     "benutzername": "username",
     "kennwort": "password",
+    "one-time code": "totp",
 }
 
 extra_keys = set([])
