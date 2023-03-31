@@ -13,7 +13,7 @@ import csv
 import json
 
 DIRECTLY_MAPPED_FIELDS = ["url", "username", "password", "totp"]
-CSV_HEADERS = ["title", "url", "username", "password", "group", "updated_at", "notes", "totp"]
+CSV_HEADERS = ["title", "url", "username", "password", "group", "updated_at", "notes", "totp", "created_at"]
 FIELD_ALIASES = {
     "website": "url",
     "e-mail": "email",
@@ -40,8 +40,23 @@ def process_item(item, folders):
 
     email = None
     username = None
+    
     updated_at = None
+    try:
+        updated_at = int(item["updated_at"])
+    except (TypeError, ValueError):
+        pass
+
+    created_at = None
+    try:
+        created_at = int(item["createdAt"])
+    except (TypeError, ValueError):
+        pass
+
     extra_fields = {}
+    
+    if (item["note"]):
+        extra_fields["Note"] = item["note"]
 
     for field in item.get("fields", []):
         field_name = field.get("label", "").lower()
@@ -78,6 +93,9 @@ def process_item(item, folders):
 
     if updated_at is not None:
         result["updated_at"] = updated_at
+    
+    if created_at is not None:
+        result["created_at"] = created_at
 
     result["notes"] = "\n".join(
         [f"{key}: {value}" for key, value in extra_fields.items()]
